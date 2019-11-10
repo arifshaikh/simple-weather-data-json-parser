@@ -91,16 +91,6 @@ public class WeatherList {
 
     @Override
     public String toString() {
-        return "WeatherList{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
-                ", coord=" + coord +
-                ", main=" + main +
-                ", dt=" + dt +
-                ", wind=" + wind +
-                ", rain=" + rain +
-                ", clouds=" + clouds +
-                ", weather=" + weather +
-                '}';
+        return "name='" + name + '\'';
     }
 }
