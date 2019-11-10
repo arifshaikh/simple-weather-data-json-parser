@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARN" monitorInterval="30">
+    <Properties>
+        <Property name="LOG_PATTERN_WITH_HIGHLIGHT">
+            %d{yyyy-MM-dd HH:mm:ss.SSS} | ${hostName} | [%thread] | %highlight{${LOG_LEVEL_PATTERN:-%5p}}{FATAL=red blink, ERROR=red, WARN=yellow bold, INFO=green, DEBUG=green bold, TRACE=blue} | %C{1.}.%M() @%L | %msg | %ex%n
+        </Property>
+        <Property name="LOG_PATTERN">
+            %d{yyyy-MM-dd HH:mm:ss.SSS} | ${hostName} | [%thread] | %-5level | %C{1.}.%M():%L | %msg | %ex%n
+        </Property>
+        <Property name="module_name">jsonparser</Property>
+        <Property name="rolling_log_file_size">5MB</Property>
+        <Property name="module_log_dir">logs</Property>
+        <Property name="log_retention_period">5d</Property>
+        <Property name="log_retention_max_size">100 MB</Property>
+        <Property name="log_retention_max_files">10</Property>
+        <Property name="max_rolling_files_in_a_day">100</Property>
+    </Properties>
+    <Appenders>
+        <Console name="ConsoleAppender" target="SYSTEM_OUT" follow="true">
+            <PatternLayout pattern="${LOG_PATTERN_WITH_HIGHLIGHT}"/>
+        </Console>
+        <RollingFile name="FileAppender" fileName="${module_log_dir}/${module_name}.log"
+                     filePattern="${module_log_dir}/${module_name}-%d{yyyy-MM-dd}-%i.log.gz"> <!-- gzip the rolling log file -->
+            <PatternLayout>
+                <Pattern>${LOG_PATTERN}</Pattern>
+            </PatternLayout>
+            <Policies>
+                <!-- Log file rotated on startup -->
+                <OnStartupTriggeringPolicy/>
+                <!-- Log file rotated everyday -->
+                <TimeBasedTriggeringPolicy/>
+                <!-- Log file rotated if the file exceeds 20MB -->
+                <SizeBasedTriggeringPolicy size="${rolling_log_file_size}"/>
+            </Policies>
+            <!--
+            1. create upto 10 (1-10) archives on the same day as we have time based triggering policy to rollover file every day
+            2. Delete files that match jsonparser-*.log.gz regex and are 5 days old or older,
+            but keep the most recent 100 MB or the most recent 10 files, whichever comes first
+            -->
+            <DefaultRolloverStrategy max="${max_rolling_files_in_a_day}">
+                <Delete basePath="${module_log_dir}" maxDepth="2">
+                    <IfFileName glob="${module_name}-*.log.gz">
+                        <IfLastModified age="${log_retention_period}">
+                            <IfAny>
+                                <IfAccumulatedFileSize exceeds="${log_retention_max_size}"/>
+                                <IfAccumulatedFileCount exceeds="${log_retention_max_files}"/>
+                            </IfAny>
+                        </IfLastModified>
+                    </IfFileName>
+                </Delete>
+            </DefaultRolloverStrategy>
+        </RollingFile>
+
+
+    </Appenders>
+    <Loggers>
+        <Logger name="com.example.jsonparser" level="debug" additivity="false">
+            <AppenderRef ref="ConsoleAppender"/>
+            <AppenderRef ref="FileAppender"/>
+        </Logger>
+
+        <Root level="info">
+            <AppenderRef ref="ConsoleAppender"/>
+            <AppenderRef ref="FileAppender"/>
+        </Root>
+
+    </Loggers>
+</Configuration>
